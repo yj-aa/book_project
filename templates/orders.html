@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>我的订单 - 图书资料库</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --primary-dark: #764ba2;
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --bg-light: #f7fafc;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.18);
+            padding: 40px;
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+        .page-header {
+            margin-bottom: 40px;
+        }
+        .page-title {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 6px;
+        }
+        .page-subtitle {
+            font-size: 0.95rem;
+            color: #9ca3af;
+            font-weight: 400;
+        }
+        .orders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        .order-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            transition: all 0.35s ease;
+            border: 1px solid #f1f5f9;
+        }
+        .order-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.2);
+        }
+        .order-cover {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+        .order-info {
+            padding: 20px;
+        }
+        .order-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #1e293b;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 8px;
+            height: 2.8em;
+        }
+        .order-category {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.75rem;
+            color: #667eea;
+            background: #eef2ff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+        .order-price {
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: #dc2626;
+            margin-bottom: 4px;
+        }
+        .order-meta {
+            font-size: 0.78rem;
+            color: #9ca3af;
+            margin-bottom: 4px;
+        }
+        .star-rating {
+            color: #fbbf24;
+            font-size: 0.85rem;
+            margin-bottom: 14px;
+            letter-spacing: 1px;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        .status-shipped {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        .status-completed {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .status-cancelled {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .order-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            border: none;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .action-btn.cancel {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .action-btn.cancel:hover {
+            background: #fecaca;
+            transform: scale(1.02);
+        }
+        .action-btn.delete {
+            background: #f3f4f6;
+            color: #6b7280;
+            border: 1.5px solid #d1d5db;
+        }
+        .action-btn.delete:hover {
+            background: #fee2e2;
+            color: #dc2626;
+            border-color: #dc2626;
+            transform: scale(1.02);
+        }
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+            gap: 8px;
+        }
+        .pagination-btn {
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: 1.5px solid #e2e8f0;
+            background: white;
+            color: #64748b;
+            transition: all 0.25s ease;
+        }
+        .pagination-btn:hover:not(:disabled) {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+        .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .pagination-info {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            font-weight: 500;
+            margin: 0 12px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 16px;
+        }
+        .empty-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        .empty-desc {
+            font-size: 0.95rem;
+            color: #9ca3af;
+            margin-bottom: 24px;
+        }
+        .back-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 32px;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover {
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="page-title">📋 我的订单</h1>
+                <p class="page-subtitle">查看您的购买记录</p>
+            </div>
+            <div class="text-right">
+                <p class="text-gray-600 mb-2">欢迎回来，<span class="font-semibold text-primary">{{ user.username }}</span></p>
+                <div class="flex justify-end gap-2">
+                    {% if user.username == 'admin' %}
+                    <a href="/admin" class="btn btn-sm btn-outline-warning rounded-full px-4">🔧 管理端</a>
+                    {% endif %}
+                    <a href="/?tab=books" class="btn btn-sm btn-outline-primary rounded-full px-4">📖 返回图书</a>
+                    <a href="/logout" class="btn btn-sm btn-outline-danger rounded-full px-4">登出</a>
+                </div>
+            </div>
+        </div>
+
+        {% if orders %}
+        <div class="orders-grid">
+            {% for order in orders %}
+            <div class="order-card">
+                <img src="{{ order[7] }}" class="order-cover">
+                <div class="order-info">
+                    <h5 class="order-title">{{ order[1] }}</h5>
+                    <span class="order-category">📁 {{ order[4] }}</span>
+                    <div class="star-rating">
+                        {% for i in range(order[3]) %}★{% endfor %}
+                        {% for i in range(5-order[3]) %}☆{% endfor %}
+                    </div>
+                    <div class="order-price">£{{ order[2] }}</div>
+                    <div class="order-meta">🕐 {{ order[8] }}</div>
+                    <div class="order-meta">订单编号：#{{ order[0] }}</div>
+                    
+                    {% if order[9] == 'pending' %}
+                    <span class="status-badge status-pending">⏳ 待发货</span>
+                    {% elif order[9] == 'shipped' %}
+                    <span class="status-badge status-shipped">📦 已发货</span>
+                    {% elif order[9] == 'completed' %}
+                    <span class="status-badge status-completed">✅ 已完成</span>
+                    {% else %}
+                    <span class="status-badge status-cancelled">❌ 已取消</span>
+                    {% endif %}
+
+                    <div class="order-actions">
+                        {% if order[9] == 'pending' %}
+                        <form action="/cancel_order" method="post" onsubmit="return confirm('确定要取消这个订单吗？');">
+                            <input type="hidden" name="order_id" value="{{ order[0] }}">
+                            <button type="submit" class="action-btn cancel">❌ 取消订单</button>
+                        </form>
+                        {% elif order[9] == 'cancelled' %}
+                        <form action="/delete_order" method="post" onsubmit="return confirm('确定要删除这条订单记录吗？删除后无法恢复。');">
+                            <input type="hidden" name="order_id" value="{{ order[0] }}">
+                            <button type="submit" class="action-btn delete">🗑️ 删除记录</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="pagination-container">
+            {% if page > 1 %}
+            <a href="/?tab=orders&page={{ page-1 }}" class="pagination-btn">← 上一页</a>
+            {% endif %}
+            <span class="pagination-info">第 {{ page }} / {{ total_page }} 页</span>
+            {% if page < total_page %}
+            <a href="/?tab=orders&page={{ page+1 }}" class="pagination-btn">下一页 →</a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">🛒</div>
+            <h3 class="empty-title">暂无订单</h3>
+            <p class="empty-desc">快去选购心仪的书籍吧！</p>
+            <a href="/?tab=books" class="back-btn">📖 去购物</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

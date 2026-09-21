@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>图书资料库 - AI智能问答</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            padding: 30px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        .book-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .book-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        .star-rating {
+            color: #FFD700;
+        }
+        .chat-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .ai-answer {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+        .pagination-info {
+            font-size: 16px;
+            font-weight: 500;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="mb-6">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h1 class="text-3xl font-bold text-primary">📚 在线图书资料库</h1>
+                    <p class="text-gray-500">收录1000+精选书籍，AI智能推荐</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-gray-600">欢迎回来，<span class="font-semibold text-primary">{{ user.username }}</span></p>
+                    {% if user.username == 'admin' %}
+                    <a href="/admin" class="btn btn-sm btn-outline-warning rounded-full mt-1 me-2">🔧 管理端</a>
+                    {% endif %}
+                    <a href="/logout" class="btn btn-sm btn-outline-danger rounded-full mt-1">登出</a>
+                </div>
+            </div>
+            <div>
+                {% if show_favorites %}
+                <a href="/?page=1" class="btn btn-outline-secondary rounded-full px-4">📖 返回图书列表</a>
+                {% else %}
+                <a href="/?show_favorites=1" class="btn btn-outline-red rounded-full px-4">❤️ 我的收藏</a>
+                {% endif %}
+                <a href="/orders" class="btn btn-outline-primary rounded-full px-4 ms-2">📋 我的订单</a>
+            </div>
+        </header>
+
+        <div class="card chat-card mb-6 p-5 shadow-lg">
+            <h3 class="text-xl font-semibold mb-3 text-primary">🤖 AI图书智能助手</h3>
+            <form action="/chat" method="post">
+                <input type="hidden" name="page" value="{{ page }}">
+                <div class="input-group">
+                    <textarea name="question" class="form-control" rows="2" placeholder="例如：推荐4星以上、30英镑以内的科幻类书籍..." style="border-radius: 10px 0 0 10px;"></textarea>
+                    <button class="btn btn-primary" type="submit" style="border-radius: 0 10px 10px 0;">
+                        <span>🔍 提问</span>
+                    </button>
+                </div>
+            </form>
+            {% if ans %}
+            <div class="mt-4">
+                <div class="bg-light p-3 rounded-lg mb-2">
+                    <span class="text-muted">你问：</span>
+                    <span class="font-medium">{{ question }}</span>
+                </div>
+                <div class="ai-answer p-4 rounded-lg">
+                    <span class="text-success font-semibold">AI回答：</span>
+                    <p class="mt-1">{{ ans }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if recommended_books %}
+            <div class="mt-5">
+                <h4 class="text-lg font-semibold text-primary mb-3">🎯 AI推荐书籍</h4>
+                <div class="row g-3">
+                    {% for book in recommended_books %}
+                    <div class="col-md-2">
+                        <div class="card h-100 shadow-md book-card rounded-lg overflow-hidden" style="border: 2px solid #4caf50;">
+                            <a href="/book/{{ book[0] }}" style="text-decoration:none;">
+                                <img src="{{ book[7] }}" class="card-img-top" style="height:180px;object-fit:cover;">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title font-semibold text-gray-800 mb-1" style="font-size: 12px; line-height: 1.4;">{{ book[1] }}</h6>
+                                </div>
+                            </a>
+                            <div class="card-body p-3 pt-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-sm font-bold text-primary">£{{ book[2] }}</span>
+                                    <span class="star-rating text-xs">
+                                        {% for i in range(book[3]) %}★{% endfor %}
+                                        {% for i in range(5-book[3]) %}☆{% endfor %}
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-xs {% if book[5]|int > 0 %}text-green-600{% else %}text-red-600{% endif %}">库存: {{ book[5] }}</span>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <form action="/toggle_favorite" method="post" class="flex-1">
+                                        <input type="hidden" name="book_id" value="{{ book[0] }}">
+                                        <input type="hidden" name="page" value="{{ page }}">
+                                        <button type="submit" class="btn btn-sm w-full {% if book[0] in favorite_ids %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-lg">
+                                            {% if book[0] in favorite_ids %}❤️ 已收藏{% else %}🤍 收藏{% endif %}
+                                        </button>
+                                    </form>
+                                    <form action="/buy" method="post">
+                                        <input type="hidden" name="book_id" value="{{ book[0] }}">
+                                        <input type="hidden" name="page" value="{{ page }}">
+                                        <button type="submit" class="btn btn-sm btn-success rounded-lg" {% if book[5]|int <= 0 %}disabled{% endif %}>
+                                            💰 购买
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="row g-4">
+            {% for book in books %}
+            <div class="col-md-3">
+                <div class="card h-100 shadow-md book-card rounded-xl overflow-hidden">
+                    <a href="/book/{{ book[0] }}" style="text-decoration:none;">
+                        <img src="{{ book[7] }}" class="card-img-top" style="height:220px;object-fit:cover;">
+                        <div class="card-body p-4">
+                            <h5 class="card-title font-semibold text-gray-800 mb-2" style="font-size: 14px; line-height: 1.4;">{{ book[1] }}</h5>
+                        </div>
+                    </a>
+                    <div class="card-body p-4 pt-0">
+                        <p class="text-xs text-gray-500 mb-2">📁 {{ book[4] }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-lg font-bold text-primary">£{{ book[2] }}</span>
+                            <span class="star-rating text-sm">
+                                {% for i in range(book[3]) %}★{% endfor %}
+                                {% for i in range(5-book[3]) %}☆{% endfor %}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-xs {% if book[5]|int > 0 %}text-green-600{% else %}text-red-600{% endif %}">库存: {{ book[5] }}</span>
+                        </div>
+                        <div class="d-flex gap-2 mt-2">
+                            <form action="/toggle_favorite" method="post" class="flex-1">
+                                <input type="hidden" name="book_id" value="{{ book[0] }}">
+                                <input type="hidden" name="page" value="{{ page }}">
+                                <input type="hidden" name="show_favorites" value="{{ show_favorites }}">
+                                <button type="submit" class="btn btn-sm w-full {% if book[0] in favorite_ids %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-lg">
+                                    {% if book[0] in favorite_ids %}❤️ 已收藏{% else %}🤍 收藏{% endif %}
+                                </button>
+                            </form>
+                            <form action="/buy" method="post">
+                                <input type="hidden" name="book_id" value="{{ book[0] }}">
+                                <input type="hidden" name="page" value="{{ page }}">
+                                <button type="submit" class="btn btn-sm btn-success rounded-lg" {% if book[5]|int <= 0 %}disabled{% endif %}>
+                                    💰 购买
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-center gap-3 mt-6">
+            {% if page > 1 %}
+            <a href="/?page={{ page-1 }}{% if show_favorites %}&show_favorites=1{% endif %}" class="btn btn-outline-primary rounded-full px-4">← 上一页</a>
+            {% endif %}
+            <span class="pagination-info align-self-center">第 {{ page }} / {{ total_page }} 页</span>
+            {% if page < total_page %}
+            <a href="/?page={{ page+1 }}{% if show_favorites %}&show_favorites=1{% endif %}" class="btn btn-outline-primary rounded-full px-4">下一页 →</a>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

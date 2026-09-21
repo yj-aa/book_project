@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# 环境变量与密钥
+.env
+
+# SQLite 数据库文件（含用户数据与密码哈希）
+*.db
+*.sqlite3
+
+# IDE / 编辑器
+.vscode/
+.idea/
+
+# 系统文件
+Thumbs.db
+.DS_Store

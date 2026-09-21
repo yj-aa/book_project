@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>我的订单 - 图书资料库</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            padding: 30px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        .order-card {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .order-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+        .star-rating {
+            color: #FFD700;
+        }
+        .purchase-date {
+            font-size: 12px;
+            color: #888;
+        }
+        .status-pending {
+            background-color: #FFF3CD;
+            color: #856404;
+        }
+        .status-shipped {
+            background-color: #D1ECF1;
+            color: #0C5460;
+        }
+        .status-completed {
+            background-color: #D4EDDA;
+            color: #155724;
+        }
+        .status-cancelled {
+            background-color: #F8D7DA;
+            color: #721C24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-primary">📋 我的订单</h1>
+                <p class="text-gray-500">查看您的购买记录</p>
+            </div>
+            <div class="text-right">
+                <p class="text-gray-600">欢迎回来，<span class="font-semibold text-primary">{{ user.username }}</span></p>
+                {% if user.username == 'admin' %}
+                <a href="/admin" class="btn btn-sm btn-outline-warning rounded-full mt-1 me-2">🔧 管理端</a>
+                {% endif %}
+                <a href="/" class="btn btn-sm btn-outline-primary rounded-full mt-1 me-2">📖 返回图书列表</a>
+                <a href="/logout" class="btn btn-sm btn-outline-danger rounded-full mt-1">登出</a>
+            </div>
+        </div>
+
+        {% if orders %}
+        <div class="row g-4">
+            {% for order in orders %}
+            <div class="col-md-4">
+                <div class="card h-100 order-card overflow-hidden">
+                    <img src="{{ order[7] }}" class="card-img-top" style="height:180px;object-fit:cover;">
+                    <div class="card-body p-4">
+                        <h5 class="card-title font-semibold text-gray-800 mb-2" style="font-size: 14px; line-height: 1.4;">{{ order[1] }}</h5>
+                        <p class="text-xs text-gray-500 mb-2">📁 {{ order[4] }}</p>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-lg font-bold text-success">£{{ order[2] }}</span>
+                            <span class="star-rating text-sm">
+                                {% for i in range(order[3]) %}★{% endfor %}
+                                {% for i in range(5-order[3]) %}☆{% endfor %}
+                            </span>
+                        </div>
+                        <div class="purchase-date mb-3">
+                            🕐 购买时间：{{ order[8] }}
+                        </div>
+                        <div class="purchase-date mb-3">
+                            订单编号：#{{ order[0] }}
+                        </div>
+                        <div class="mb-3">
+                            {% if order[9] == 'pending' %}
+                            <span class="badge status-pending px-3 py-1 rounded-full text-xs font-medium">⏳ 待发货</span>
+                            {% elif order[9] == 'shipped' %}
+                            <span class="badge status-shipped px-3 py-1 rounded-full text-xs font-medium">📦 已发货</span>
+                            {% elif order[9] == 'completed' %}
+                            <span class="badge status-completed px-3 py-1 rounded-full text-xs font-medium">✅ 已完成</span>
+                            {% else %}
+                            <span class="badge status-cancelled px-3 py-1 rounded-full text-xs font-medium">❌ 已取消</span>
+                            {% endif %}
+                        </div>
+                        {% if order[9] == 'pending' %}
+                        <form action="/cancel_order" method="post" onsubmit="return confirm('确定要取消这个订单吗？');">
+                            <input type="hidden" name="order_id" value="{{ order[0] }}">
+                            <button type="submit" class="btn btn-sm btn-danger rounded-full w-100">❌ 取消订单</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-center gap-3 mt-6">
+            {% if page > 1 %}
+            <a href="/orders?page={{ page-1 }}" class="btn btn-outline-primary rounded-full px-4">← 上一页</a>
+            {% endif %}
+            <span class="text-gray-600 align-self-center">第 {{ page }} / {{ total_page }} 页</span>
+            {% if page < total_page %}
+            <a href="/orders?page={{ page+1 }}" class="btn btn-outline-primary rounded-full px-4">下一页 →</a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <div class="text-6xl mb-4">🛒</div>
+            <h3 class="text-xl font-semibold text-gray-600 mb-2">暂无订单</h3>
+            <p class="text-gray-500 mb-4">快去选购心仪的书籍吧！</p>
+            <a href="/" class="btn btn-primary rounded-full px-6">📖 去购物</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
